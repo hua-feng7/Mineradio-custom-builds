@@ -2,6 +2,13 @@
 
 ## v1.1.1
 
+- 移除应用内自动更新：删除前端更新入口、后端 `/api/update/*` 接口、快速补丁写文件逻辑、桌面端打开更新安装包 IPC、Android 本地服务更新 stub，以及 GitHub publish/update 配置。
+- 当前版本更新改为手动分发：Windows 使用安装包，Android 使用时间戳 APK；不再依赖 `latest.yml`、软件内更新弹窗或快速补丁 JSON。
+- 歌词默认值更新：默认 15 行歌词、歌词提供默认三方、歌词加载方式默认“优化（SDF/MSDF）”、换句时差默认 `-0.4` 秒；旧默认 `5 行 / 原版 / -1 秒` 会在启动时迁移到新默认。
+- Android 触控 rail 修复：歌单和 3D 歌单架按钮现在可二次点击关闭，不再只能打开不能收回。
+- 本轮 Windows 安装包：`windows-builds/20260706-000004/Mineradio-1.1.1-Setup.exe`，SHA256 `E4271AA72BD5C7A5134544DB088E87C9C54E2188C5D2D7878497A17278472796`。
+- 本轮 Android APK：`android/apk-builds/Mineradio-android-20260705-235805-debug.apk`，SHA256 `5085FDD894079183394E07D07AE246B41F33472891821CF698AEF05D8D8DCBF3`。
+- Windows 构建显式使用 `pnpm@11.7.0`，避免 electron-builder 误按 npm 解析 pnpm 安装的依赖。
 - P0 installer safety fix: installation now defaults to the first available non-C drive from `D:\Mineradio` through `Z:\Mineradio`; it falls back to `C:\Mineradio` only when no D-Z drive exists.
 - The installer now forces the target path into a dedicated `Mineradio` folder, blocks non-empty non-Mineradio-owned targets, and blocks C drive installs when a D-Z drive is available.
 - Existing registered installs in a dedicated `...\Mineradio` folder are adopted in place so users can run the new setup over their current installation and receive the safe uninstaller.

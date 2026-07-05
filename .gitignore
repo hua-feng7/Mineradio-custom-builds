@@ -8,6 +8,12 @@ out/
 release/
 releases/
 win-unpacked/
+mac-builds/
+windows-builds/
+android/apk-builds/
+android/build/
+android/assets/www/
+android/debug.keystore
 *.exe
 *.msi
 *.blockmap

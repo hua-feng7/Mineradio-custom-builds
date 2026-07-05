@@ -1,85 +1,84 @@
 # Mineradio Next Chat Handoff
 
-更新时间：2026-06-24
+更新时间：2026-07-05
 
-## 新对话先执行
+## 新对话先确认
 
 ```powershell
-cd E:\桌面\播放器软件\Mineradio\resources\app
+cd "D:\Default path\zhuomian\codex\Mineradio"
 git status --short --branch
-git log --oneline -5 --decorate
-Get-Content AGENTS.md
-Get-Content docs\PROJECT_MEMORY.md
-Get-Content docs\HANDOFF_NEXT_CHAT.md
+Get-Content docs\PROJECT_MEMORY.md -TotalCount 80
+Get-Content RELEASE.md
+Get-Content CHANGELOG.md -TotalCount 80
 ```
 
-如涉及 3D 歌单架、安全重建、发布、安装包或旧备份取用，再读：
+涉及 Android 移植、安装包、歌词舞台或发布时再读：
 
 ```powershell
-Get-Content docs\3D_PLAYLIST_SHELF_MEMORY.md
-Get-Content docs\SECURITY_REBUILD_2026-06-24.md
-Get-Content CHANGELOG.md -TotalCount 80
-Get-Content RELEASE.md
+Get-Content android\PORTING_PLAN.md
+Get-Content android\apk-builds\BUILDS.md
+Get-Content package.json
 ```
 
 ## 当前状态
 
-- 当前真实代码/Git 仓库：`E:\桌面\播放器软件\Mineradio\resources\app`
-- 当前版本：`v1.1.0`
-- 当前发布策略：纯净安装版，从当前可信源码重新构建；`v1.0.10` 及更早旧安装包需要隔离，不再建议安装或传播。
-- 本次发布不做 `v1.0.10 -> v1.1.0` 软件内本地更新，不上传 `latest.yml`，不生成快速补丁。
-- 安装包样式继续沿用 `docs/INSTALLER_STYLE.md` 的中文极简黑白蓝格式。
-- GitHub 仓库已公开：`https://github.com/XxHuberrr/Mineradio`
-- `v1.1.0` Release：`https://github.com/XxHuberrr/Mineradio/releases/tag/v1.1.0`
-- GitHub `/releases/latest` 仍返回 `v1.0.10`，这是刻意设置，避免旧版软件内更新到 1.1.0。
+- 当前工作区：`D:\Default path\zhuomian\codex\Mineradio`
+- 当前版本：`v1.1.1`
+- 当前发布策略：手动分发 Windows 安装包和 Android 时间戳 APK。
+- 当前更新边界：应用内自动更新、`/api/update/*`、快速补丁、`latest.yml` 通道、自动打开安装包 IPC、Android 更新 stub 和 `package.json` 更新配置均已移除。
+- 不再生成或发布快速补丁 JSON；不再让旧客户端通过软件内更新链路拉取新版。
 
-## 本轮重点
+## 本轮产物
 
-- 已将 `E:\Download\默认测试.json` 设为首次启动默认用户存档和软件内默认视觉参数。
-- 新增 `public/default-user-fx-archive.json`，代码中 `PACKAGED_DEFAULT_FX_SNAPSHOT` 与该 JSON 已脚本比对一致。
-- 没有本地 `mineradio-lyric-layout-v1` 时，`readSavedLyricLayout()` 使用 packaged 默认快照；没有本地用户存档 key 时自动创建「默认测试」槽位。
-- 已恢复详细日志和发布说明：`CHANGELOG.md`、`README.md`、`SECURITY.md`、`RELEASE.md`、`docs/SECURITY_REBUILD_2026-06-24.md`、`docs/RELEASE_NOTES_v1.1.0.md`。
-- 已生成安装包：`dist/Mineradio-1.1.0-Setup.exe`。
-- 已生成校验文件：`dist/Mineradio-1.1.0-SHA256SUMS.txt`。
-- 已发布资产：安装包、blockmap、SHA256SUMS；未上传 `latest.yml`。
-- 已批量给旧 Release（`v1.0.10` 到 `v0.9.9`）正文顶部追加旧安装包隔离警示。
+- Windows 安装包：`windows-builds/20260706-000004/Mineradio-1.1.1-Setup.exe`
+- Windows 安装包 SHA256：`E4271AA72BD5C7A5134544DB088E87C9C54E2188C5D2D7878497A17278472796`
+- Windows blockmap：`windows-builds/20260706-000004/Mineradio-1.1.1-Setup.exe.blockmap`
+- Android APK：`android/apk-builds/Mineradio-android-20260705-235805-debug.apk`
+- Android APK SHA256：`5085FDD894079183394E07D07AE246B41F33472891821CF698AEF05D8D8DCBF3`
+
+## 本轮重点改动
+
+- 删除前端标题栏更新入口和更新弹窗。
+- 删除后端 `/api/update/latest`、下载、下载状态、补丁应用和补丁状态接口。
+- 删除桌面端更新安装包 IPC、重启更新 IPC 和更新目录环境变量。
+- 删除 Android 本地服务 `/api/update/*` 兼容 stub，返回键逻辑不再检查 `update-modal`。
+- 删除 `package.json` 的 GitHub publish/update 配置，改为 `packageManager: pnpm@11.7.0` 配合当前依赖安装方式。
+- 安装器启动参数不再带 `--updated`。
+- 默认歌词行数改为 15 行，歌词提供默认三方，歌词加载方式默认“优化（SDF/MSDF）”，换句时差默认 `-0.4` 秒。
+- Android 触控 rail 的歌单和 3D 歌单架按钮支持二次点击关闭。
+- 已同步歌词溢光羽化、暂停歌词景深慢速后退、歌手详情/搜索结果分页加载到 Android APK 与 Windows 安装包。
+- Windows 端补齐歌手详情分页：`/api/artist/detail` 和 `/api/qq/artist/detail` 现在会按 `page/pageNo` 请求后续歌曲，不再点击“查看更多”重复第一页。
+- 暂停歌词景深手感补调：暂停瞬间加入小幅起步位移，并提高进入暂停时的 Z 位移跟随；恢复播放速度保持原来的快速响应。
+- 文档已改为当前手动分发版本：`README.md`、`CHANGELOG.md`、`RELEASE.md`、`docs/PROJECT_MEMORY.md`、`android/PORTING_PLAN.md`。
 
 ## 已知验证
 
-- `git diff --check`：通过。
 - `node --check server.js`：通过。
-- 前端 `public/index.html` 5 个内联脚本解析：通过。
-- `public/default-user-fx-archive.json` JSON 解析：通过。
-- 代码内置默认快照与 `public/default-user-fx-archive.json` 字段比对：一致。
-- Git 跟踪高风险残留检查：没有匹配 `.exe/.dll/.scr/.bat/.cmd/.ps1/.vbs/.jse/.wsf/.hta/.xlsm/.msi`。
-- `npm run build:win`：第一次被旧代理 `127.0.0.1:26001` 拦截；切到 `127.0.0.1:10808` 后构建成功。
-- Defender 状态：实时防护开启，签名版本 `1.453.247.0`。
-- Defender 已扫描新安装包和 `dist\win-unpacked`；`Get-MpThreatDetection` 查询为空。
-- 安装包 SHA256：`bd53aae4e551f5b0b5a398a51e6ec1de5a9a57cb42e5eecedb0a1647fdcee6e6`。
+- `node --check desktop/main.js`：通过。
+- `node --check desktop/preload.js`：通过。
+- `node --check public/lyric-render-worker.js`：通过。
+- `public/index.html` 内联脚本解析：通过。
+- `git diff --check`：通过，只有 `build/installer.nsh` 的 CRLF 提示。
+- Android：`android/verify_android_port.ps1` 通过 89 项检查。
+- Windows：`electron-builder --win nsis` 成功，产物已复制到 `windows-builds/20260706-000004`。
+- 本地 `node_modules/` 已保留作为后续打包依赖缓存；`dist/` 保留本次 electron-builder 输出，正式分发包已复制到 `windows-builds/20260706-000004`。
 
-## 发布注意
-
-- GitHub CLI 命令需要在命令内覆盖代理：
+## 构建命令
 
 ```powershell
-$env:HTTP_PROXY='http://127.0.0.1:10808'
-$env:HTTPS_PROXY='http://127.0.0.1:10808'
-$env:ALL_PROXY='socks5://127.0.0.1:10808'
+node --check server.js
+node --check desktop\main.js
+node --check desktop\preload.js
+node --check public\lyric-render-worker.js
+powershell -ExecutionPolicy Bypass -File .\android\build_apk.ps1 -BuildNote "说明"
+powershell -ExecutionPolicy Bypass -File .\android\verify_android_port.ps1
+pnpm install --no-frozen-lockfile --ignore-scripts=false --lockfile=false
+.\node_modules\.bin\electron-builder.cmd --win nsis
 ```
-
-- 发布 `v1.1.0` 时不要上传 `dist/latest.yml`。
-- Release 建议上传：
-  - `dist/Mineradio-1.1.0-Setup.exe`
-  - `dist/Mineradio-1.1.0-Setup.exe.blockmap`
-  - `dist/Mineradio-1.1.0-SHA256SUMS.txt`
-- Release 正文使用 `docs/RELEASE_NOTES_v1.1.0.md`。
-- Release 需要 `--latest=false` 或等价 API，避免旧版客户端通过 `/releases/latest` 自动发现。
-- 旧 release 尤其 `v1.0.10` 需要追加隔离警示，不要删除旧资产。
 
 ## 不要做
 
-- 不要修改旧外层源码目录，只有 `resources\app` 会影响运行版。
-- 不要从 `工作区备份\2026-06-18-workspace-cleanup`、旧 `dist`、旧 `node_modules` 或旧 packaged build 中恢复可执行产物。
-- 不要使用 `git reset --hard` 或 `git checkout --` 回滚用户改动。
-- 不要把 `v1.1.0` 当作 `v1.0.10` 的软件内更新发布。
-- 不要上传 `latest.yml` 或 `v1.0.10 -> v1.1.0` 快速补丁。
+- 不要再恢复软件内自动更新、`latest.yml` 或快速补丁 JSON。
+- 不要每次复制完整工作区；在当前工作区内增量构建即可。
+- 不要覆盖 `android/apk-builds` 或 `windows-builds` 里的历史产物；新增包按时间目录或时间文件名保存。
+- 不要用 `git reset --hard` 或 `git checkout --` 回滚用户改动。

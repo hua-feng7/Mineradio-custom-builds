@@ -87,12 +87,7 @@
 !macro customFinishPage
   !ifndef HIDE_RUN_AFTER_FINISH
     Function MineradioFinishStartApp
-      ${If} ${isUpdated}
-        StrCpy $1 "--updated"
-      ${Else}
-        StrCpy $1 ""
-      ${EndIf}
-      ${StdUtils.ExecShellAsUser} $0 "$launchLink" "open" "$1"
+      ${StdUtils.ExecShellAsUser} $0 "$launchLink" "open" ""
     FunctionEnd
 
     !define MUI_FINISHPAGE_RUN

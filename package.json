@@ -5,11 +5,15 @@
   "description": "沉浸式音乐播放器，融合天气电台、歌词舞台、粒子视觉和 3D 歌单架。",
   "author": "Mineradio",
   "main": "desktop/main.js",
+  "packageManager": "pnpm@11.7.0",
   "private": true,
   "scripts": {
     "start": "electron .",
-    "build:win": "electron-builder --win nsis",
-    "build:win:dir": "electron-builder --win dir"
+    "build:mac": "electron-builder --mac --publish never",
+    "build:mac:apple": "electron-builder --mac dmg zip --arm64 --publish never",
+    "build:mac:dir": "electron-builder --mac dir --arm64 --publish never",
+    "build:win": "electron-builder --win nsis --publish never",
+    "build:win:dir": "electron-builder --win dir --publish never"
   },
   "build": {
     "appId": "com.mineradio.desktop",
@@ -33,6 +37,53 @@
       "public/index.html"
     ],
     "asar": false,
+    "mac": {
+      "icon": "build/icon.png",
+      "category": "public.app-category.music",
+      "type": "development",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "notarize": false,
+      "minimumSystemVersion": "11.0",
+      "electronLanguages": [
+        "zh-CN",
+        "en"
+      ],
+      "extendInfo": {
+        "LSMinimumSystemVersion": "11.0",
+        "LSRequiresNativeExecution": true,
+        "NSHighResolutionCapable": true,
+        "NSSupportsAutomaticGraphicsSwitching": true,
+        "LSApplicationCategoryType": "public.app-category.music",
+        "NSMicrophoneUsageDescription": "Mineradio 使用麦克风进行节奏分析和可视化。",
+        "NSCameraUsageDescription": "Mineradio 使用相机进行视觉交互。"
+      },
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "Mineradio-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "Mineradio ${version}",
+      "icon": "build/icon.png",
+      "iconSize": 80,
+      "window": {
+        "width": 500,
+        "height": 380
+      }
+    },
     "win": {
       "executableName": "Mineradio",
       "icon": "build/icon.ico",
@@ -60,27 +111,6 @@
       "installerHeader": "build/installerHeader.bmp",
       "include": "build/installer.nsh",
       "artifactName": "Mineradio-${version}-Setup.${ext}"
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "XxHuberrr",
-        "repo": "Mineradio"
-      }
-    ]
-  },
-  "mineradio": {
-    "update": {
-      "provider": "github",
-      "owner": "XxHuberrr",
-      "repo": "Mineradio",
-      "preview": true,
-      "preferMirrors": true,
-      "mirrors": [
-        "https://gh.llkk.cc/",
-        "https://ghfast.top/",
-        "https://gh-proxy.com/"
-      ]
     }
   },
   "dependencies": {
