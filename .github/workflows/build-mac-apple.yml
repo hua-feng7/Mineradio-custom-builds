@@ -22,10 +22,11 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
+        run: npm install
+
+      - name: Use npm metadata for electron-builder
         run: |
-          corepack enable
-          corepack prepare pnpm@11.7.0 --activate
-          pnpm install --no-frozen-lockfile
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); delete pkg.packageManager; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
 
       - name: Build Apple Silicon DMG and ZIP
         env:
