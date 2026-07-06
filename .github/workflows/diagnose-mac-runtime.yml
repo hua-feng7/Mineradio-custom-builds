@@ -1,0 +1,102 @@
+name: Diagnose macOS Runtime
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Use npm metadata for electron-builder
+        run: |
+          node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); delete pkg.packageManager; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
+      - name: Build unpacked mac app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npx electron-builder --mac dir --arm64 --publish never
+
+      - name: Smoke test runtime
+        shell: bash
+        run: |
+          set -u
+          APP_BIN="dist/mac-arm64/Mineradio.app/Contents/MacOS/Mineradio"
+          if [ ! -x "$APP_BIN" ]; then
+            echo "Missing app binary: $APP_BIN"
+            find dist -maxdepth 4 -type f | sort
+            exit 1
+          fi
+
+          export ELECTRON_ENABLE_LOGGING=1
+          export ELECTRON_ENABLE_STACK_DUMPING=1
+          "$APP_BIN" --enable-logging --v=1 > mac-runtime.log 2>&1 &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID"
+
+          SERVER_OK=0
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:3000/ > home.html 2>> mac-runtime.log; then
+              SERVER_OK=1
+              break
+            fi
+            if ! kill -0 "$APP_PID" 2>/dev/null; then
+              echo "app process exited before server was reachable"
+              break
+            fi
+            sleep 1
+          done
+          echo "SERVER_OK=$SERVER_OK"
+
+          if [ "$SERVER_OK" = "1" ]; then
+            curl -sS -D login-status.headers http://127.0.0.1:3000/api/login/status -o login-status.json || true
+            curl -sS -D qq-status.headers http://127.0.0.1:3000/api/qq/login/status -o qq-status.json || true
+            curl -sS -D search.headers 'http://127.0.0.1:3000/api/search?keywords=test&limit=1' -o search.json || true
+          fi
+
+          sleep 4
+          if kill -0 "$APP_PID" 2>/dev/null; then
+            kill "$APP_PID" || true
+          fi
+          sleep 1
+
+          echo "===== mac-runtime.log tail ====="
+          tail -240 mac-runtime.log || true
+          echo "===== home size ====="
+          wc -c home.html 2>/dev/null || true
+          echo "===== login status ====="
+          cat login-status.json 2>/dev/null || true
+          echo
+          echo "===== qq status ====="
+          cat qq-status.json 2>/dev/null || true
+          echo
+          echo "===== search ====="
+          head -c 1200 search.json 2>/dev/null || true
+          echo
+
+          test "$SERVER_OK" = "1"
+
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-runtime-diagnostics
+          path: |
+            mac-runtime.log
+            home.html
+            *.headers
+            *.json
+          if-no-files-found: ignore
