@@ -3806,7 +3806,57 @@ function getRenderLoadTier() {
   if (cssPixels >= 3200000 || renderPixels >= 3600000) return 1;
   return 0;
 }
-var renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
+function createFallbackRenderer(error) {
+  console.error('[Mineradio] WebGL renderer unavailable:', error);
+  document.documentElement.classList.add('webgl-unavailable');
+  var canvas = document.createElement('canvas');
+  var pixelRatio = 1;
+  canvas.setAttribute('aria-hidden', 'true');
+  canvas.style.background = 'transparent';
+  canvas.style.display = 'block';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.tabIndex = 0;
+  return {
+    userData: { webglUnavailable: true },
+    domElement: canvas,
+    capabilities: {
+      maxTextureSize: 2048,
+      getMaxAnisotropy: function(){ return 1; }
+    },
+    info: {
+      memory: { geometries: 0, textures: 0 },
+      render: { calls: 0, triangles: 0 }
+    },
+    renderLists: { dispose: function(){} },
+    setClearColor: function(){},
+    setPixelRatio: function(value){
+      pixelRatio = Math.max(0.1, Number(value) || 1);
+    },
+    getPixelRatio: function(){ return pixelRatio; },
+    setSize: function(width, height){
+      var w = Math.max(1, Math.round((Number(width) || innerWidth || 1) * pixelRatio));
+      var h = Math.max(1, Math.round((Number(height) || innerHeight || 1) * pixelRatio));
+      canvas.width = w;
+      canvas.height = h;
+      canvas.style.width = Math.max(1, Math.round(Number(width) || innerWidth || 1)) + 'px';
+      canvas.style.height = Math.max(1, Math.round(Number(height) || innerHeight || 1)) + 'px';
+    },
+    render: function(){},
+    compile: function(){},
+    initTexture: function(){}
+  };
+}
+function createMineradioRenderer() {
+  try {
+    var webglRenderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
+    webglRenderer.userData = Object.assign({}, webglRenderer.userData || {}, { webglUnavailable: false });
+    return webglRenderer;
+  } catch (error) {
+    return createFallbackRenderer(error);
+  }
+}
+var renderer = createMineradioRenderer();
 renderer.setClearColor(0x000000, 0);
 renderer.setPixelRatio(getRenderPixelRatio());
 renderer.setSize(innerWidth, innerHeight);
@@ -27866,6 +27916,9 @@ var PEEK_HIDE_DELAY = 170;
 var peekTimers = { search:null, fx:null, pl:null };
 function setPeek(el, on, key) {
   if (!el) return;
+  if (!peekTimers || typeof peekTimers !== 'object') peekTimers = {};
+  key = key || 'search';
+  if (!Object.prototype.hasOwnProperty.call(peekTimers, key)) peekTimers[key] = null;
   if (immersiveMode && on && (key === 'search' || key === 'fx')) return;
   if (on && !diyPlayerMode && key === 'fx') return;
   if (!on && key === 'search' && emptyHomeActive && !immersiveMode) return;
