@@ -28,11 +28,11 @@ jobs:
         run: |
           node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); delete pkg.packageManager; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
 
-      - name: Build Apple Silicon DMG and ZIP
+      - name: Build Apple Silicon DMG
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: |
-          npx electron-builder --mac dmg zip --arm64 --publish never
+          npx electron-builder --mac dmg --arm64 --publish never
           node build/rename-mac-artifacts.js
 
       - name: Verify DMG image
@@ -44,7 +44,7 @@ jobs:
         shell: bash
         run: |
           cd dist
-          shasum -a 256 Mineradio-*-mac-apple.dmg Mineradio-*-mac-apple.zip > SHA256SUMS-mac-apple.txt
+          shasum -a 256 Mineradio-*-mac-apple.dmg > SHA256SUMS-mac-apple.txt
           cat SHA256SUMS-mac-apple.txt
 
       - name: Upload workflow artifact
@@ -53,7 +53,6 @@ jobs:
           name: Mineradio-mac-apple
           path: |
             dist/Mineradio-*-mac-apple.dmg
-            dist/Mineradio-*-mac-apple.zip
             dist/SHA256SUMS-mac-apple.txt
           if-no-files-found: error
 
@@ -63,5 +62,4 @@ jobs:
         with:
           files: |
             dist/Mineradio-*-mac-apple.dmg
-            dist/Mineradio-*-mac-apple.zip
             dist/SHA256SUMS-mac-apple.txt
